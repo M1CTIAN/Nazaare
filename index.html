@@ -48,9 +48,20 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="./styles/main.css" />
+    
+    <!-- Preload photos.json -->
+    <link rel="preload" href="./data/photos.json" as="fetch" type="application/json">
+    
+    <!-- Preload first few images for faster initial render -->
+    <link rel="preload" href="./photos/1.jpg" as="image">
+    <link rel="preload" href="./photos/2.jpg" as="image">
+    <link rel="preload" href="./photos/3.jpg" as="image">
 
     <!-- EXIF.js (for reading image metadata) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+    
+    <!-- Main script with defer to load in parallel -->
+    <script src="./scripts/main.js" defer></script>
   </head>
 
   <body>
