@@ -9,63 +9,39 @@ let currentPage = 1;
 
 const PHOTOS_PER_PAGE = 6;
 
-// Load photo metadata and enrich with EXIF
+// Load photo metadata and render immediately
 fetch("data/photos.json")
   .then(res => res.json())
   .then(data => {
     PHOTOS = data;
-    return Promise.all(PHOTOS.map(extractExif));
-  })
-  .then(updatedPhotos => {
-    PHOTOS = updatedPhotos;
     filteredPhotos = [...PHOTOS];
-    renderGallery();
+    renderGallery(); 
     YEAR.textContent = new Date().getFullYear();
+    
   })
   .catch(err => {
     console.error("Error loading photos:", err);
+    GALLERY.innerHTML = '<p class="error-state">Failed to load photos. Please refresh.</p>';
   });
 
 // Search handler
-SEARCH.addEventListener("input", (e) => {
+SEARCH.addEventListener("input", debounce((e) => {
   const term = e.target.value.toLowerCase();
   filteredPhotos = PHOTOS.filter(photo =>
-    photo.title.toLowerCase().includes(term) ||
-    photo.description.toLowerCase().includes(term) ||
-    (photo.tags && photo.tags.some(tag => tag.toLowerCase().includes(term)))
+    (photo.title || "").toLowerCase().includes(term) ||
+    (photo.description || "").toLowerCase().includes(term) ||
+    (photo.tags || []).some(tag => tag.toLowerCase().includes(term))
   );
   currentPage = 1;
   renderGallery();
-});
+}, 300));
 
-// Extract EXIF metadata
-function extractExif(photo) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = `assets/photos/${photo.filename}`;
-    img.crossOrigin = "anonymous";
-
-    img.onload = function () {
-      try {
-        EXIF.getData(img, function () {
-          const make = EXIF.getTag(this, "Make") || "";
-          const model = EXIF.getTag(this, "Model") || "";
-          const date = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime") || "";
-          const orientation = EXIF.getTag(this, "Orientation") || 1;
-
-          photo.device = (make + " " + model).trim() || photo.device || "Unknown Device";
-          photo.dateTaken = date || photo.dateTaken || "Unknown Date";
-          photo.orientation = (orientation === 6 || orientation === 8) ? "portrait" : "landscape";
-
-          resolve(photo);
-        });
-      } catch {
-        resolve(photo); // fallback if EXIF fails
-      }
-    };
-
-    img.onerror = () => resolve(photo); // fallback on error
-  });
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
 }
 
 // Render gallery items
