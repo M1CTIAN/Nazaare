@@ -176,7 +176,12 @@ function renderPagination() {
   for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
-    if (i === currentPage) btn.classList.add("active");
+    // Accessibility: describe the button and mark the current page
+    btn.setAttribute("aria-label", `Go to page ${i}`);
+    if (i === currentPage) {
+      btn.classList.add("active");
+      btn.setAttribute("aria-current", "page");
+    }
     btn.addEventListener("click", () => {
       currentPage = i;
       renderGallery();
