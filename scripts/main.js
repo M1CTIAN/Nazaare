@@ -9,6 +9,42 @@ let currentPage = 1;
 
 const PHOTOS_PER_PAGE = 6;
 
+// --- Empty state helpers (place after constants) ---
+function clearEmptyState() {
+  const msg = document.getElementById("no-result-msg");
+  if (msg) msg.remove();
+}
+
+//error card 
+function renderEmptyState() {
+  clearEmptyState();
+  const card = document.createElement("div");
+  card.id = "no-result-msg";
+  card.className = "empty-card";
+card.innerHTML = `
+  <div class="empty-wrap">
+  <div id="no-result-msg" class="empty-card" role="region" aria-label="No results">
+    <div class="empty-illustration" aria-hidden="true">
+      <img src="assets/error.png" alt="" class="empty-img" />
+    </div>
+    <h3 class="empty-title">No results found</h3>
+    <p class="empty-subtitle">Try a different search term or view all photos.</p>
+    <div class="empty-actions">
+      <button class="empty-home-btn" type="button">See all photos</button>
+    </div>
+  </div>
+</div>
+`;
+  card.querySelector(".empty-home-btn").addEventListener("click", () => {
+    SEARCH.value = "";
+    filteredPhotos = [...PHOTOS];
+    currentPage = 1;
+    renderGallery();
+  });
+  GALLERY.appendChild(card);
+}
+
+
 // Load photo metadata and enrich with EXIF
 fetch("data/photos.json")
   .then(res => res.json())
@@ -38,7 +74,6 @@ GALLERY.innerHTML = `
 document.getElementById("retry-btn").addEventListener("click", () => location.reload());
 });
 
-// Search handler
 SEARCH.addEventListener("input", (e) => {
   const term = e.target.value.toLowerCase();
   filteredPhotos = PHOTOS.filter(photo =>
@@ -80,9 +115,19 @@ function extractExif(photo) {
   });
 }
 
-// Render gallery items
+
+//rendered gallery
 function renderGallery() {
   GALLERY.innerHTML = "";
+  clearEmptyState();
+
+  if (filteredPhotos.length === 0) {
+    PAGINATION.style.display = "none";
+    renderEmptyState();
+    return;
+  } else {
+    PAGINATION.style.display = "";
+  }
 
   const start = (currentPage - 1) * PHOTOS_PER_PAGE;
   const pagePhotos = filteredPhotos.slice(start, start + PHOTOS_PER_PAGE);
@@ -109,12 +154,16 @@ function renderGallery() {
   renderPagination();
 }
 
-// Render pagination buttons
 function renderPagination() {
   PAGINATION.innerHTML = "";
   const totalPages = Math.ceil(filteredPhotos.length / PHOTOS_PER_PAGE);
 
-  // Prev
+  if (totalPages <= 1) {
+    PAGINATION.style.display = totalPages === 0 ? "none" : "flex";
+    return;
+  }
+  PAGINATION.style.display = "flex";
+
   const prev = document.createElement("button");
   prev.textContent = "Prev";
   prev.disabled = currentPage === 1;
@@ -124,7 +173,6 @@ function renderPagination() {
   });
   PAGINATION.appendChild(prev);
 
-  // Pages
   for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
@@ -136,7 +184,6 @@ function renderPagination() {
     PAGINATION.appendChild(btn);
   }
 
-  // Next
   const next = document.createElement("button");
   next.textContent = "Next";
   next.disabled = currentPage === totalPages;
@@ -146,7 +193,6 @@ function renderPagination() {
   });
   PAGINATION.appendChild(next);
 }
-
 // Lightbox
 const LIGHTBOX = document.getElementById("lightbox");
 const LIGHTBOX_IMG = document.getElementById("lightbox-img");
