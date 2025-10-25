@@ -234,24 +234,22 @@ document.addEventListener("keydown", e => {
 });
 
 function formatDateTime(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return "Unknown";
-
-  const [datePart, timePart] = dateStr.split(" ");
-  if (!datePart || !timePart) return dateStr;
-
-  const [year, month, day] = datePart.split(":");
-  const [hour, minute] = timePart.split(":");
-
-  const date = new Date(`${year}-${month}-${day}T${hour}:${minute}`);
-
-  return date.toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
+  if (!dateStr) return "Unknown";
+  
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "Unknown";
+  
+  // Format: "20 Dec 2020, 4:05 pm"
+  const options = { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true
-  });
+  };
+  
+  return date.toLocaleString('en-GB', options);
 }
 
 const THEME_BTN = document.getElementById("theme-toggle-btn");
