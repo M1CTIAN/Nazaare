@@ -71,7 +71,17 @@ GALLERY.innerHTML = `
 document.getElementById("retry-btn").addEventListener("click", () => location.reload());
 });
 
-SEARCH.addEventListener("input", (e) => {
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+// Search handler with debounce applied
+const handleSearch = debounce((e) => {
   const term = e.target.value.toLowerCase();
   filteredPhotos = PHOTOS.filter(photo =>
     (photo.title || "").toLowerCase().includes(term) ||
@@ -82,14 +92,7 @@ SEARCH.addEventListener("input", (e) => {
   renderGallery();
 }, 300);
 
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
+SEARCH.addEventListener("input", handleSearch);
 
 //rendered gallery
 function renderGallery() {
